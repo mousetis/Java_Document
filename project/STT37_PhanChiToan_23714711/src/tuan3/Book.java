@@ -12,10 +12,10 @@ public class Book implements Serializable {
 	private String bookID;
 	private String bookName;
 	private String author;
-	private int yearOfPublication;
+	private Integer yearOfPublication;
 	private String producer;
-	private int pages;
-	private double unitPrice;
+	private Integer pages;
+	private Double unitPrice;
 	private String ISBN;
 	
 	public String getBookID() {
@@ -58,9 +58,12 @@ public class Book implements Serializable {
 	public int getYearOfPublication() {
 		return yearOfPublication;
 	}
-	public void setYearOfPublication(int yearOfPublication) throws Exception{
+	public void setYearOfPublication(Integer yearOfPublication) throws Exception{
 		int currentYear = Year.now().getValue();
-		if(yearOfPublication < 1900 || yearOfPublication > currentYear ) {
+		if(yearOfPublication == null) {
+			throw new Exception("Năm xuất bản không được để trống");
+		}
+		else if(yearOfPublication < 1900 || yearOfPublication > currentYear ) {
 			throw new Exception("Năm xuất bản phải nằm trong khoảng từ 1900 đến nay!");
 		}
 		this.yearOfPublication = yearOfPublication;
@@ -68,14 +71,19 @@ public class Book implements Serializable {
 	public String getProducer() {
 		return producer;
 	}
-	public void setProducer(String producer) {
+	public void setProducer(String producer) throws Exception{
+		if(producer.trim().isEmpty()) {
+			throw new Exception("Nhà xuất bản không được để trống");
+		}
 		this.producer = producer;
 	}
 	public int getPages() {
 		return pages;
 	}
-	public void setPages(int pages) throws Exception {
-		if(pages < 0) {
+	public void setPages(Integer pages) throws Exception {
+		if(pages == null) {
+			throw new Exception("Số trang không được để trống");
+		}else if(pages < 0) {
 			throw new Exception("Số trang không được nhỏ hơn 0!");
 		}
 		this.pages = pages;
@@ -83,8 +91,10 @@ public class Book implements Serializable {
 	public double getUnitPrice() {
 		return unitPrice;
 	}
-	public void setUnitPrice(double unitPrice) throws Exception{
-		if(unitPrice < 0) {
+	public void setUnitPrice(Double unitPrice) throws Exception{
+		if(unitPrice == null) {
+			throw new Exception("Đơn giá không được để trống");
+		}else if(unitPrice < 0) {
 			throw new Exception("Đơn giá không được nhỏ hơn 0!");
 		}
 		this.unitPrice = unitPrice;
@@ -107,8 +117,8 @@ public class Book implements Serializable {
 		super();
 		// TODO Auto-generated constructor stub
 	}
-	public Book(String bookID, String bookName, String author, int yearOfPublication, String producer, int pages,
-			double unitPrice, String iSBN) {
+	public Book(String bookID, String bookName, String author, Integer yearOfPublication, String producer, Integer pages,
+			Double unitPrice, String iSBN) {
 		super();
 		this.bookID = bookID;
 		this.bookName = bookName;

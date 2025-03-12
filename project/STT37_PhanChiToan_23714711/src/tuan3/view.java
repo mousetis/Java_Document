@@ -197,6 +197,17 @@ public class view extends JFrame implements ActionListener {
 	}
 //======================================Function=========================================================	
 	
+	public void deleteData() {
+		txtBookID.setText("");
+		txtBookName.setText("");
+		txtAuthor.setText("");
+		txtYearOfPublication.setText("");
+		txtProducer.setText("");
+		txtPages.setText("");
+		txtUnitPrice.setText("");
+		txtBookISBN.setText("");
+	}
+	
 	public void addBookTable() {
 		if(this.txtBookID.getText().equalsIgnoreCase("") || txtBookID.getText().trim().isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Mã sách không được để trống!","Lỗi",JOptionPane.ERROR_MESSAGE);
@@ -205,12 +216,11 @@ public class view extends JFrame implements ActionListener {
 			String id = this.txtBookID.getText();
 			String bkName = this.txtBookName.getText();
 			String autName = this.txtAuthor.getText();
-			int year = Integer.valueOf(this.txtYearOfPublication.getText());
+			Integer year = Integer.valueOf(this.txtYearOfPublication.getText());
 			String prName = this.txtProducer.getText();
-			int page = Integer.valueOf(this.txtPages.getText());
+			Integer page = Integer.valueOf(this.txtPages.getText());
 			Double uniPrice = Double.valueOf(this.txtUnitPrice.getText());
 			String isbn = this.txtBookISBN.getText();
-						
 			try {
 				Book newBook = new Book();
 				newBook.setBookID(id);
@@ -224,8 +234,9 @@ public class view extends JFrame implements ActionListener {
 			    
 			    this.list.addBook(newBook);
 				this.mdlTable.addRow(new Object[] {id, bkName, autName, year, prName,page, uniPrice, isbn});
+				cbbFind.addItem(id);
 				this.tblTable.clearSelection();
-				//deleteData();
+				deleteData();
 				txtBookID.requestFocus();
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(this, e.getMessage(),"Lỗi!",JOptionPane.ERROR_MESSAGE);	
