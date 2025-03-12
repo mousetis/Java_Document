@@ -6,6 +6,8 @@ import java.time.Year;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import javax.naming.AuthenticationException;
+
 public class Book implements Serializable {
 	private String bookID;
 	private String bookName;
@@ -14,17 +16,14 @@ public class Book implements Serializable {
 	private String producer;
 	private int pages;
 	private double unitPrice;
-	private int ISBN;
+	private String ISBN;
 	
 	public String getBookID() {
 		return bookID;
 	}
 	public void setBookID(String bookID) throws Exception{
-		String regexID = "[A-Z]\\d{3}";
-		if(bookID.trim().isEmpty()) {
-			throw new Exception("Mã sách không được để trống");
-		}
-		if(!Pattern.matches(regexID, bookID)) {
+		String regexID = "^[A-Z]\\d{3}$";
+		if(bookID == null || !(Pattern.matches(regexID, bookID))) {
 			throw new Exception("Định dạng mã sách sai. Mã sách gồm 4 ký tự bắt đầu bằng chữ cái in hoa và 3 ký tự số theo sau!");
 		}
 		
@@ -34,11 +33,11 @@ public class Book implements Serializable {
 		return bookName;
 	}
 	public void setBookName(String bookName) throws Exception {
-		String regexName = "[\\p{L}\\d\\s\\-()]+";
+		String regexName = "[a-zA-Z\\d\\s\\-()]+";
 		if(bookName.trim().isEmpty()) {
-			throw new Exception("Tựa sách không được để trống");
+			throw new Exception("Tựa sách không được để trống!");
 		}
-		if(!Pattern.matches(regexName, bookName)) {
+		else if(!(Pattern.matches(regexName, bookName))) {
 			throw new Exception("Định dạng tựa sách sai. Tựa sách không được chứa ký tự đặc biệt nào khác ngoài \"- và ()");
 		}
 		this.bookName = bookName;
@@ -47,11 +46,11 @@ public class Book implements Serializable {
 		return author;
 	}
 	public void setAuthor(String author) throws Exception{
-		String regexAuthor = "[a-zA-Z']";
+		String regexAuthor = "[a-zA-Z\\s']+";
 		if(author.trim().isEmpty()) {
-			throw new Exception("Tên tác giả không được để trống");
+			throw new Exception("Tên tác giả không được để trống!");
 		}
-		if(Pattern.matches(regexAuthor, author)) {
+		else if(!(Pattern.matches(regexAuthor, author))) {
 			throw new Exception("Định dạng tên tác giả sai.Không chứa chữ số và ký tự đặc biệt ngoại trừ \"'");
 		}
 		this.author = author;
@@ -75,7 +74,10 @@ public class Book implements Serializable {
 	public int getPages() {
 		return pages;
 	}
-	public void setPages(int pages) {
+	public void setPages(int pages) throws Exception {
+		if(pages < 0) {
+			throw new Exception("Số trang không được nhỏ hơn 0!");
+		}
 		this.pages = pages;
 	}
 	public double getUnitPrice() {
@@ -83,23 +85,30 @@ public class Book implements Serializable {
 	}
 	public void setUnitPrice(double unitPrice) throws Exception{
 		if(unitPrice < 0) {
-			throw new Exception("Đơn giá không được nhỏ hơn 0");
+			throw new Exception("Đơn giá không được nhỏ hơn 0!");
 		}
 		this.unitPrice = unitPrice;
 	}
 	
-	public int getISBN() {
+	public String getISBN(){
 		return ISBN;
 	}
-	public void setISBN(int iSBN) {
-		this.ISBN = iSBN;
+	public void setISBN(String ISBN) throws Exception {
+		String regexISBN = "(\\d+-){3,4}\\d+";
+		if(ISBN.trim().isEmpty()) {
+			throw new Exception("Mã ISBN không được để trống!");
+		}
+		else if(!(Pattern.matches(regexISBN, ISBN))) {
+			throw new Exception("Vui lòng nhập đúng định dạng ISBN!");
+		}
+		this.ISBN = ISBN;
 	}
 	public Book() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 	public Book(String bookID, String bookName, String author, int yearOfPublication, String producer, int pages,
-			double unitPrice, int iSBN) {
+			double unitPrice, String iSBN) {
 		super();
 		this.bookID = bookID;
 		this.bookName = bookName;
@@ -123,7 +132,7 @@ public class Book implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		Book other = (Book) obj;
-		return ISBN == other.ISBN && Objects.equals(bookID, other.bookID);
+		return Objects.equals(ISBN, other.ISBN) && Objects.equals(bookID, other.bookID);
 	}
 	
 }

@@ -42,5 +42,15 @@ public class ArrayBook implements Serializable {
 		return null;
 	}
 	
+	public int findIndexBook(Book bk) {
+		int index = 0;
+		if(listBook.contains(bk))
+			index = listBook.indexOf(bk);
+		return index;
+	}
 	
+	public void updateBook(Book bk) {
+		int idxBook = findIndexBook(bk);
+		listBook.set(idxBook, bk);
+	}
 }
