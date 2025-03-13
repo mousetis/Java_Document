@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.sql.Array;
 import java.util.ArrayList;
 
-public class ArrayBook implements Serializable {
+public class ArrayBook {
 	ArrayList<Book> listBook = new ArrayList<Book>();
 
 	public ArrayBook() {
@@ -22,10 +22,18 @@ public class ArrayBook implements Serializable {
 	}
 	
 	public void addBook(Book newBook) throws Exception{
-		if(!listBook.contains(newBook)) {
-			listBook.add(newBook);
-		} else {
-			throw new Exception("Mã sách bị trùng!");
+		for(Book bk : listBook) {
+			if(bk.getISBN().equals(newBook.getISBN()))
+				throw new Exception("Trùng mã ISBN");
+				return;
+		}
+		
+		for(Book bk : listBook) {
+			if(bk.getBookID().equalsIgnoreCase(newBook.getBookID())) {
+				listBook.add(newBook);
+			} else {
+				throw new Exception("Mã sách bị trùng!");
+			}
 		}
 	}
 	
@@ -52,5 +60,14 @@ public class ArrayBook implements Serializable {
 	public void updateBook(Book bk) {
 		int idxBook = findIndexBook(bk);
 		listBook.set(idxBook, bk);
+	}
+	
+	public Book getBook(String bookID) {
+		for(Book bk : listBook) {
+			if(bk.getBookID().equalsIgnoreCase(bookID)) {
+				return bk;
+			}
+		}
+		return null;
 	}
 }

@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 import javax.naming.AuthenticationException;
 
-public class Book implements Serializable {
+public class Book{
 	private String bookID;
 	private String bookName;
 	private String author;
@@ -144,5 +144,12 @@ public class Book implements Serializable {
 		Book other = (Book) obj;
 		return Objects.equals(ISBN, other.ISBN) && Objects.equals(bookID, other.bookID);
 	}
+	@Override
+	public String toString() {
+		return "Book [bookID=" + bookID + ", bookName=" + bookName + ", author=" + author + ", yearOfPublication="
+				+ yearOfPublication + ", producer=" + producer + ", pages=" + pages + ", unitPrice=" + unitPrice
+				+ ", ISBN=" + ISBN + "]";
+	}
+	
 	
 }

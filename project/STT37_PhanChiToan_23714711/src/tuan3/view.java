@@ -3,11 +3,18 @@ package tuan3;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -50,8 +57,10 @@ public class view extends JFrame implements ActionListener,MouseListener {
 	private DefaultTableModel mdlTable;
 	private JTable tblTable;
 	private TableRowSorter<TableModel> tbrsorter;
-	private Boolean isCheck = true; 
-	int rowSelected = tblTable.convertRowIndexToModel(tblTable.getSelectedRow());
+	private Boolean isCheck = true;
+	private String filename = "bookData.txt";
+	private ArrayBook li;
+	//int rowSelected;
 	private static final long serialVersionUID = 1L;
 	
 	public view() {
@@ -102,7 +111,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		JLabel lblProducer = new JLabel("Nhà xuất bản:");
 		txtProducer = new JTextField();
 		pnl3.add(lblYearOfPublication);
-		pnl3.add(Box.createHorizontalStrut(11));
+		pnl3.add(Box.createHorizontalStrut(13));
 		pnl3.add(txtYearOfPublication);
 		pnl3.add(Box.createHorizontalStrut(20));
 		pnl3.add(lblProducer);
@@ -180,7 +189,9 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		String[] title = {"Mã Sách","Tựa Sách","Tác Giả","Năm Xuất Bản","Nhà Xuất Bản","Số Trang","Đơn Giá","ISBN"};
 		mdlTable = new DefaultTableModel(title,0);
 		tblTable = new JTable(mdlTable);
+		tblTable.getTableHeader().setFont(new Font("Arial",Font.BOLD,12));
 		tbrsorter = new TableRowSorter<TableModel>(mdlTable);
+		tblTable.setAutoCreateRowSorter(true);
 		tblTable.setRowSorter(tbrsorter);
 		tblTable.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		JScrollPane scrTable = new JScrollPane(tblTable);
@@ -196,21 +207,71 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		this.setSize(1000, 700);
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		this.setLocationRelativeTo(null);
+		this.loadData();
 		this.setVisible(true);
 		
 		btnAdd.addActionListener(this);
 		btnEmptyDelete.addActionListener(this);
 		btnDelete.addActionListener(this);
 		cbbFind.addActionListener(this);
+		btnUpdate.addActionListener(this);
+		btnSave.addActionListener(this);
 		tblTable.addMouseListener(this);
+		
+		
+		addEnterKeyListener(txtBookID, txtBookName);
+		addEnterKeyListener(txtBookName, txtAuthor);
+		addEnterKeyListener(txtAuthor, txtYearOfPublication);
+		addEnterKeyListener(txtYearOfPublication, txtProducer);
+		addEnterKeyListener(txtProducer, txtPages);
+		addEnterKeyListener(txtPages, txtUnitPrice);
+		addEnterKeyListener(txtUnitPrice, txtBookISBN);
 	}
 //======================================Function=========================================================	
+	public void loadData() {
+		BufferedReader br = null;
+		li = new ArrayBook();
+		try {
+			if(new File(filename ).exists()) {
+				br = new BufferedReader(new FileReader(filename));
+				br.readLine();
+				
+				while (br.ready()) {
+					String line = br.readLine();
+					if(line != null && !line.trim().equals("")) {
+						String[] str = line.split(";");
+						Book bk = new Book(str[0],str[1],str[2],Integer.parseInt(str[3]),str[4],Integer.parseInt(str[5]),Double.parseDouble(str[6]),str[7]);
+						li.addBook(bk);
+						mdlTable.addRow(str);
+					}
+				}
+			}
+			br.close();
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, "Không tìm thấy file!","Lỗi",JOptionPane.ERROR_MESSAGE);
+		}
+	}
+//=======================================================================================
+	public void saveData(ArrayList<Book> listB) {
+		BufferedWriter bw;
+		try {
+			bw = new BufferedWriter(new FileWriter(filename));
+			bw.write("MaSach;TuaSach;TacGia;NamXuatBan;NhaXuatBan;SoTrang;DonGia;ISBN");
+			for(Book bk : listB) {
+				bw.write(bk.toString()+"\n");
+			}
+			bw.close();
+			JOptionPane.showMessageDialog(this, "Lưu thành công!","Thông báo",JOptionPane.INFORMATION_MESSAGE);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, "Không thể lưu!","Lỗi",JOptionPane.ERROR_MESSAGE);
+		}
+	}
 	
 	public void deleteData() {
 		txtBookID.setText("");
 		txtBookName.setText("");
 		txtAuthor.setText("");
-		txtYearOfPublication.setText("");
+		txtYearOfPublication.setText("");	 
 		txtProducer.setText("");
 		txtPages.setText("");
 		txtUnitPrice.setText("");
@@ -272,11 +333,13 @@ public class view extends JFrame implements ActionListener,MouseListener {
 //==============================================================================================
 	
 	public void deleteBook() {
+		int rowSelected = tblTable.convertRowIndexToModel(tblTable.getSelectedRow());
 		String bkID = txtBookID.getText();
 		Book bkDelete = this.list.findBook(bkID);
 		this.list.removeBook(bkDelete);
 		this.mdlTable.removeRow(rowSelected);
 		this.tblTable.clearSelection();
+		this.cbbFind.removeItem(bkID);
 		this.deleteData();
 	}
 //==============================================================================================
@@ -292,20 +355,38 @@ public class view extends JFrame implements ActionListener,MouseListener {
 //==============================================================================================
 	
 	public void updateBook() {
+		int rowSelected = tblTable.getSelectedRow();
+		int modelRow = tblTable.convertRowIndexToModel(rowSelected);
 		if(isCheck) {
-			if(rowSelected == -1) {
+			if(rowSelected  == -1) {
 				JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần sửa!","Lỗi",JOptionPane.ERROR_MESSAGE);
+			}else {
+				txtBookID.selectAll();
+				txtBookID.requestFocus();
+				btnUpdate.setText("Xong");
 			}
+			isCheck = false;
+		} else {
+			int confirm = JOptionPane.showConfirmDialog(this, "Bạn có xác nhận thay đổi thông tin của cuốn sách này?","Xác nhận",JOptionPane.YES_NO_OPTION);
+			if(confirm == JOptionPane.YES_OPTION) {
+				mdlTable.setValueAt(txtBookID.getText(), modelRow, 0);
+				mdlTable.setValueAt(txtBookName.getText(), modelRow, 1);
+				mdlTable.setValueAt(txtAuthor.getText(), modelRow, 2);
+				mdlTable.setValueAt(txtYearOfPublication.getText(), modelRow, 3);
+				mdlTable.setValueAt(txtProducer.getText(), modelRow, 4);
+				mdlTable.setValueAt(txtPages.getText(), modelRow, 5);
+				mdlTable.setValueAt(txtUnitPrice.getText(), modelRow, 6);
+				mdlTable.setValueAt(txtBookISBN.getText(), modelRow, 7);
+				btnUpdate.setText("Sửa");
+			}
+			isCheck = true;
 		}
+		cbbFind.removeItemAt(modelRow);
+		cbbFind.insertItemAt(txtBookID.getText(), modelRow);
 	}
+	
 //==============================================================================================
-//==============================================================================================
-//==============================================================================================
-//==============================================================================================
-//==============================================================================================
-//==============================================================================================
-//==============================================================================================
-
+	
 	public void getDataBook() {
 		int rowSelected = tblTable.convertRowIndexToModel(tblTable.getSelectedRow());
 		this.txtBookID.setText(this.mdlTable.getValueAt(rowSelected, 0).toString());
@@ -316,10 +397,12 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		this.txtPages.setText(this.mdlTable.getValueAt(rowSelected, 5).toString());
 		this.txtUnitPrice.setText(this.mdlTable.getValueAt(rowSelected, 6).toString());
 		this.txtBookISBN.setText(this.mdlTable.getValueAt(rowSelected, 7).toString());
+		
 	}
 	
 //==============================================================================================
 	public static void main(String[] args) {
+	
 		new view();
 	}
 	
@@ -336,6 +419,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 			deleteData();
 		} else
 		if(o == btnDelete) {
+			int rowSelected = tblTable.getSelectedRow();
 			if(rowSelected == -1) {
 				JOptionPane.showMessageDialog(this,"Vui lòng chọn dòng cần xóa!","Lỗi",JOptionPane.ERROR_MESSAGE);
 			} else {
@@ -347,9 +431,26 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		} else
 		if(o == cbbFind) {
 			findBook();
+		} else 
+		if(o == btnUpdate){
+			updateBook();
+		} else 
+		if(o == btnSave) {
+			saveData(list.getList());
 		}
-		
 	}
+//==============================================================================================	
+	private void addEnterKeyListener(JTextField currentField, JTextField nextField) {
+		currentField.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				nextField.requestFocus();
+				
+			}
+		});
+	}
+//==============================================================================================	
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		this.getDataBook();
