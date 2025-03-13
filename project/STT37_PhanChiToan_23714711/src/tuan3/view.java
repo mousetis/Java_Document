@@ -354,48 +354,54 @@ public class view extends JFrame implements ActionListener,MouseListener {
 	}
 //==============================================================================================
 	
-	public void updateBook() {
-		int rowSelected = tblTable.getSelectedRow();
-		int modelRow = tblTable.convertRowIndexToModel(rowSelected);
-		if(isCheck) {
-			if(rowSelected  == -1) {
-				JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần sửa!","Lỗi",JOptionPane.ERROR_MESSAGE);
-			}else {
-				txtBookID.selectAll();
-				txtBookID.requestFocus();
-				btnUpdate.setText("Xong");
+	public void updateBook() throws Exception {
+			int rowSelected = tblTable.getSelectedRow();
+			int modelRow = tblTable.convertRowIndexToModel(rowSelected);
+			String bookID = (String) mdlTable.getValueAt(rowSelected, 0);
+			Book oldBook = list.getBook(bookID);
+			if(isCheck) {
+				if(rowSelected  == -1) {
+					JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần sửa!","Lỗi",JOptionPane.ERROR_MESSAGE);
+				}else {
+//					txtBookName.selectAll();
+//					txtBookName.requestFocus();
+					btnUpdate.setText("Xong");
+				}
+				isCheck = false;
+			} else {
+				if(!txtBookID.getText().equals(oldBook.getBookID()))
+				{
+					JOptionPane.showConfirmDialog(this, "Không được thay đổi mã sách.","Xác nhận",JOptionPane.YES_NO_OPTION);
+					txtBookID.setText(oldBook.getBookID());
+				}
+				else
+				{
+					int confirm = JOptionPane.showConfirmDialog(this, "Bạn có xác nhận thay đổi thông tin của cuốn sách này?","Xác nhận",JOptionPane.YES_NO_OPTION);
+					if(confirm == JOptionPane.YES_OPTION) {
+
+						oldBook.setBookName(txtBookName.getText());
+						oldBook.setAuthor(txtAuthor.getText());
+						oldBook.setYearOfPublication(Integer.parseInt(txtYearOfPublication.getText()));
+						oldBook.setProducer(txtProducer.getText());
+						oldBook.setPages(Integer.parseInt(txtPages.getText()));
+						oldBook.setUnitPrice(Double.parseDouble(txtUnitPrice.getText()));
+						oldBook.setISBN(txtBookISBN.getText());
+						
+						mdlTable.setValueAt(txtBookName.getText(), modelRow, 1);
+						mdlTable.setValueAt(txtAuthor.getText(), modelRow, 2);
+						mdlTable.setValueAt(txtYearOfPublication.getText(), modelRow, 3);
+						mdlTable.setValueAt(txtProducer.getText(), modelRow, 4);
+						mdlTable.setValueAt(txtPages.getText(), modelRow, 5);
+						mdlTable.setValueAt(txtUnitPrice.getText(), modelRow, 6);
+						mdlTable.setValueAt(txtBookISBN.getText(), modelRow, 7);
+						btnUpdate.setText("Sửa");
+					}		
+				}
+				isCheck = true;
 			}
-			isCheck = false;
-		} else {
-			int confirm = JOptionPane.showConfirmDialog(this, "Bạn có xác nhận thay đổi thông tin của cuốn sách này?","Xác nhận",JOptionPane.YES_NO_OPTION);
-			if(confirm == JOptionPane.YES_OPTION) {
-				Book updatedBk = new Book(
-				        txtBookID.getText(),
-				        txtBookName.getText(),
-				        txtAuthor.getText(),
-				        Integer.parseInt(txtYearOfPublication.getText()),
-				        txtProducer.getText(),
-				        Integer.parseInt(txtPages.getText()),
-				        Double.parseDouble(txtUnitPrice.getText()),
-				        txtBookISBN.getText()
-				    );
-				list.updateBook(updatedBk);
-				mdlTable.setValueAt(txtBookID.getText(), modelRow, 0);
-				mdlTable.setValueAt(txtBookName.getText(), modelRow, 1);
-				mdlTable.setValueAt(txtAuthor.getText(), modelRow, 2);
-				mdlTable.setValueAt(txtYearOfPublication.getText(), modelRow, 3);
-				mdlTable.setValueAt(txtProducer.getText(), modelRow, 4);
-				mdlTable.setValueAt(txtPages.getText(), modelRow, 5);
-				mdlTable.setValueAt(txtUnitPrice.getText(), modelRow, 6);
-				mdlTable.setValueAt(txtBookISBN.getText(), modelRow, 7);
-				btnUpdate.setText("Sửa");
-				cbbFind.removeItemAt(modelRow);
-				cbbFind.insertItemAt(txtBookID.getText(), modelRow);
-			}
-			isCheck = true;
 		}
-	}
-	
+
+
 //==============================================================================================
 	
 	public void getDataBook() {
@@ -449,7 +455,12 @@ public class view extends JFrame implements ActionListener,MouseListener {
 			findBook();
 		} else 
 		if(o == btnUpdate){
-			updateBook();
+			try {
+				updateBook();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		} else 
 		if(o == btnSave) {
 			saveData(list.getList());
