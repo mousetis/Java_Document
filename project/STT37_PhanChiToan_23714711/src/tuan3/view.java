@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -28,7 +30,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-public class view extends JFrame implements ActionListener {
+public class view extends JFrame implements ActionListener,MouseListener {
 	public ArrayBook list = new ArrayBook();
 	private JTextField txtBookID;
 	private JTextField txtBookName;
@@ -193,7 +195,9 @@ public class view extends JFrame implements ActionListener {
 		this.setVisible(true);
 		
 		btnAdd.addActionListener(this);
-		
+		btnEmptyDelete.addActionListener(this);
+		btnDelete.addActionListener(this);
+		tblTable.addMouseListener(this);
 	}
 //======================================Function=========================================================	
 	
@@ -208,54 +212,140 @@ public class view extends JFrame implements ActionListener {
 		txtBookISBN.setText("");
 	}
 	
+//==============================================================================================
+	
 	public void addBookTable() {
 		if(this.txtBookID.getText().equalsIgnoreCase("") || txtBookID.getText().trim().isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Mã sách không được để trống!","Lỗi",JOptionPane.ERROR_MESSAGE);
 			return;
 		} else {
-			String id = this.txtBookID.getText();
-			String bkName = this.txtBookName.getText();
-			String autName = this.txtAuthor.getText();
-			Integer year = Integer.valueOf(this.txtYearOfPublication.getText());
-			String prName = this.txtProducer.getText();
-			Integer page = Integer.valueOf(this.txtPages.getText());
-			Double uniPrice = Double.valueOf(this.txtUnitPrice.getText());
-			String isbn = this.txtBookISBN.getText();
-			try {
-				Book newBook = new Book();
-				newBook.setBookID(id);
-				newBook.setBookName(bkName);
-			    newBook.setAuthor(autName);
-			    newBook.setYearOfPublication(year);
-			    newBook.setProducer(prName);
-			    newBook.setPages(page);
-			    newBook.setUnitPrice(uniPrice);
-			    newBook.setISBN(isbn);
-			    
-			    this.list.addBook(newBook);
-				this.mdlTable.addRow(new Object[] {id, bkName, autName, year, prName,page, uniPrice, isbn});
-				cbbFind.addItem(id);
-				this.tblTable.clearSelection();
-				deleteData();
-				txtBookID.requestFocus();
-			} catch (Exception e) {
-				JOptionPane.showMessageDialog(this, e.getMessage(),"Lỗi!",JOptionPane.ERROR_MESSAGE);	
+			if(!txtYearOfPublication.getText().matches("\\d+")) {
+				JOptionPane.showMessageDialog(this, "Sai định dạng dữ liệu của năm xuất bản vui lòng nhập số","Lỗi",JOptionPane.ERROR_MESSAGE);
+			} else
+			if(!txtPages.getText().matches("\\d+")) {
+				JOptionPane.showMessageDialog(this, "sai định dạng dữ liệu của số trang vui lòng nhập số","Lỗi",JOptionPane.ERROR_MESSAGE);
+			} else
+			if(!txtUnitPrice.getText().matches("\\d*\\.\\d+")) {
+				JOptionPane.showMessageDialog(this,"Sai định dạng dữ liệu của đơn giá vui lòng nhập đúng đơn giá với dấu '.' ","Lỗi",JOptionPane.ERROR_MESSAGE);
+			} else
+			{
+				try {
+					String id = this.txtBookID.getText();
+					String bkName = this.txtBookName.getText();
+					String autName = this.txtAuthor.getText();
+					Integer year = Integer.valueOf(this.txtYearOfPublication.getText());
+					String prName = this.txtProducer.getText();
+					Integer page = Integer.valueOf(this.txtPages.getText());
+					Double uniPrice = Double.valueOf(this.txtUnitPrice.getText());
+					String isbn = this.txtBookISBN.getText();
+					
+					Book newBook = new Book();
+					newBook.setBookID(id);
+					newBook.setBookName(bkName);
+				    newBook.setAuthor(autName);
+				    newBook.setYearOfPublication(year);
+				    newBook.setProducer(prName);
+				    newBook.setPages(page);
+				    newBook.setUnitPrice(uniPrice);
+				    newBook.setISBN(isbn);
+				    
+				    this.list.addBook(newBook);
+					this.mdlTable.addRow(new Object[] {id, bkName, autName, year, prName,page, uniPrice, isbn});
+					cbbFind.addItem(id);
+					this.tblTable.clearSelection();
+					deleteData();
+					txtBookID.requestFocus();
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(this, e.getMessage(),"Lỗi!",JOptionPane.ERROR_MESSAGE);	
 			} 
+			}
+			
 		}
 	}
 	
+//==============================================================================================
+	
+	public void deleteBook() {
+		int rowSelected = tblTable.getSelectedRow();
+		if(rowSelected == -1) {
+			JOptionPane.showMessageDialog(this,"Vui lòng chọn dòng cần xóa!","Lỗi",JOptionPane.ERROR_MESSAGE);
+		} else {
+			String bkID = txtBookID.getText();
+			Book bkDelete = this.list.findBook(bkID);
+			this.list.removeBook(bkDelete);
+			this.mdlTable.removeRow(rowSelected);
+			this.tblTable.clearSelection();
+			this.deleteData();
+		}
+	}
+//==============================================================================================
+//==============================================================================================
+//==============================================================================================
+//==============================================================================================
+//==============================================================================================
+//==============================================================================================
+//==============================================================================================
+//==============================================================================================
+//==============================================================================================
 
+	public void getDataBook() {
+		int rowSelected = tblTable.convertRowIndexToModel(tblTable.getSelectedRow());
+		this.txtBookID.setText(this.mdlTable.getValueAt(rowSelected, 0).toString());
+		this.txtBookName.setText(this.mdlTable.getValueAt(rowSelected, 1).toString());
+		this.txtAuthor.setText(this.mdlTable.getValueAt(rowSelected, 2).toString());
+		this.txtYearOfPublication.setText(this.mdlTable.getValueAt(rowSelected, 3).toString());
+		this.txtProducer.setText(this.mdlTable.getValueAt(rowSelected, 4).toString());
+		this.txtPages.setText(this.mdlTable.getValueAt(rowSelected, 5).toString());
+		this.txtUnitPrice.setText(this.mdlTable.getValueAt(rowSelected, 6).toString());
+		this.txtBookISBN.setText(this.mdlTable.getValueAt(rowSelected, 7).toString());
+	}
+	
+//==============================================================================================
 	public static void main(String[] args) {
 		new view();
 	}
-
+	
+//==============================================================================================
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object o =e.getSource();
 		
 		if(o == btnAdd) {
 			addBookTable();
+		} else
+		if(o == btnEmptyDelete) {
+			deleteData();
+		} else
+		if(o == btnDelete) {
+			deleteBook();
 		}
+		
+	}
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		this.getDataBook();
+		
+	}
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 
