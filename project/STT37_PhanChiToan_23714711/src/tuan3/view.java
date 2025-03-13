@@ -22,6 +22,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -48,7 +49,9 @@ public class view extends JFrame implements ActionListener,MouseListener {
 	private JComboBox cbbFind;
 	private DefaultTableModel mdlTable;
 	private JTable tblTable;
-	private TableRowSorter<TableModel> tbrsorter; 
+	private TableRowSorter<TableModel> tbrsorter;
+	private Boolean isCheck = true; 
+	int rowSelected = tblTable.convertRowIndexToModel(tblTable.getSelectedRow());
 	private static final long serialVersionUID = 1L;
 	
 	public view() {
@@ -151,6 +154,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		btnSave = new JButton("Lưu");
 		JLabel lblFind = new JLabel("Tìm theo mã sách:");
 		cbbFind = new JComboBox<>();
+		cbbFind.addItem("");
 		cbbFind.setMaximumSize(new Dimension(130,25));
 		pnlCenter.add(Box.createHorizontalStrut(150));
 		pnlCenter.add(btnAdd);
@@ -197,6 +201,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		btnAdd.addActionListener(this);
 		btnEmptyDelete.addActionListener(this);
 		btnDelete.addActionListener(this);
+		cbbFind.addActionListener(this);
 		tblTable.addMouseListener(this);
 	}
 //======================================Function=========================================================	
@@ -218,7 +223,8 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		if(this.txtBookID.getText().equalsIgnoreCase("") || txtBookID.getText().trim().isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Mã sách không được để trống!","Lỗi",JOptionPane.ERROR_MESSAGE);
 			return;
-		} else {
+		}
+		else {
 			if(!txtYearOfPublication.getText().matches("\\d+")) {
 				JOptionPane.showMessageDialog(this, "Sai định dạng dữ liệu của năm xuất bản vui lòng nhập số","Lỗi",JOptionPane.ERROR_MESSAGE);
 			} else
@@ -266,20 +272,32 @@ public class view extends JFrame implements ActionListener,MouseListener {
 //==============================================================================================
 	
 	public void deleteBook() {
-		int rowSelected = tblTable.getSelectedRow();
-		if(rowSelected == -1) {
-			JOptionPane.showMessageDialog(this,"Vui lòng chọn dòng cần xóa!","Lỗi",JOptionPane.ERROR_MESSAGE);
-		} else {
-			String bkID = txtBookID.getText();
-			Book bkDelete = this.list.findBook(bkID);
-			this.list.removeBook(bkDelete);
-			this.mdlTable.removeRow(rowSelected);
-			this.tblTable.clearSelection();
-			this.deleteData();
+		String bkID = txtBookID.getText();
+		Book bkDelete = this.list.findBook(bkID);
+		this.list.removeBook(bkDelete);
+		this.mdlTable.removeRow(rowSelected);
+		this.tblTable.clearSelection();
+		this.deleteData();
+	}
+//==============================================================================================
+	
+	public void findBook() {
+		String comboBoxSelected = cbbFind.getSelectedItem().toString();
+		if(!comboBoxSelected.equalsIgnoreCase("")) {
+			tbrsorter.setRowFilter(RowFilter.regexFilter(comboBoxSelected, 0));
+		}else {
+			tbrsorter.setRowFilter(null);
 		}
 	}
 //==============================================================================================
-//==============================================================================================
+	
+	public void updateBook() {
+		if(isCheck) {
+			if(rowSelected == -1) {
+				JOptionPane.showMessageDialog(this, "Vui lòng chọn dòng cần sửa!","Lỗi",JOptionPane.ERROR_MESSAGE);
+			}
+		}
+	}
 //==============================================================================================
 //==============================================================================================
 //==============================================================================================
@@ -318,7 +336,17 @@ public class view extends JFrame implements ActionListener,MouseListener {
 			deleteData();
 		} else
 		if(o == btnDelete) {
-			deleteBook();
+			if(rowSelected == -1) {
+				JOptionPane.showMessageDialog(this,"Vui lòng chọn dòng cần xóa!","Lỗi",JOptionPane.ERROR_MESSAGE);
+			} else {
+				int check = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa dữ liệu cuốn sách này?","Xác nhận xóa",JOptionPane.YES_NO_OPTION);
+					if(check == JOptionPane.YES_OPTION)
+					deleteBook();
+			}
+			
+		} else
+		if(o == cbbFind) {
+			findBook();
 		}
 		
 	}
