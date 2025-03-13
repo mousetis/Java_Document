@@ -59,7 +59,6 @@ public class view extends JFrame implements ActionListener,MouseListener {
 	private TableRowSorter<TableModel> tbrsorter;
 	private Boolean isCheck = true;
 	private String filename = "bookData.txt";
-	private ArrayBook li;
 	//int rowSelected;
 	private static final long serialVersionUID = 1L;
 	
@@ -111,7 +110,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		JLabel lblProducer = new JLabel("Nhà xuất bản:");
 		txtProducer = new JTextField();
 		pnl3.add(lblYearOfPublication);
-		pnl3.add(Box.createHorizontalStrut(13));
+		pnl3.add(Box.createHorizontalStrut(11));
 		pnl3.add(txtYearOfPublication);
 		pnl3.add(Box.createHorizontalStrut(20));
 		pnl3.add(lblProducer);
@@ -230,7 +229,6 @@ public class view extends JFrame implements ActionListener,MouseListener {
 //======================================Function=========================================================	
 	public void loadData() {
 		BufferedReader br = null;
-		li = new ArrayBook();
 		try {
 			if(new File(filename ).exists()) {
 				br = new BufferedReader(new FileReader(filename));
@@ -241,27 +239,28 @@ public class view extends JFrame implements ActionListener,MouseListener {
 					if(line != null && !line.trim().equals("")) {
 						String[] str = line.split(";");
 						Book bk = new Book(str[0],str[1],str[2],Integer.parseInt(str[3]),str[4],Integer.parseInt(str[5]),Double.parseDouble(str[6]),str[7]);
-						li.addBook(bk);
+						list.addBook(bk);
 						mdlTable.addRow(str);
+						cbbFind.addItem(str[0]);
 					}
 				}
 			}
 			br.close();
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "Không tìm thấy file!","Lỗi",JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(this, "Lỗi đọc file!","Lỗi",JOptionPane.ERROR_MESSAGE);
 		}
 	}
 //=======================================================================================
 	public void saveData(ArrayList<Book> listB) {
-		BufferedWriter bw;
+		BufferedWriter bw = null;
 		try {
 			bw = new BufferedWriter(new FileWriter(filename));
-			bw.write("MaSach;TuaSach;TacGia;NamXuatBan;NhaXuatBan;SoTrang;DonGia;ISBN");
+			bw.write("MaSach;TuaSach;TacGia;NamXuatBan;NhaXuatBan;SoTrang;DonGia;ISBN\n");
 			for(Book bk : listB) {
 				bw.write(bk.toString()+"\n");
 			}
 			bw.close();
-			JOptionPane.showMessageDialog(this, "Lưu thành công!","Thông báo",JOptionPane.INFORMATION_MESSAGE);
+			
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(this, "Không thể lưu!","Lỗi",JOptionPane.ERROR_MESSAGE);
 		}
@@ -281,6 +280,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 //==============================================================================================
 	
 	public void addBookTable() {
+		System.out.println(list.getList());
 		if(this.txtBookID.getText().equalsIgnoreCase("") || txtBookID.getText().trim().isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Mã sách không được để trống!","Lỗi",JOptionPane.ERROR_MESSAGE);
 			return;
@@ -292,19 +292,19 @@ public class view extends JFrame implements ActionListener,MouseListener {
 			if(!txtPages.getText().matches("\\d+")) {
 				JOptionPane.showMessageDialog(this, "sai định dạng dữ liệu của số trang vui lòng nhập số","Lỗi",JOptionPane.ERROR_MESSAGE);
 			} else
-			if(!txtUnitPrice.getText().matches("\\d*\\.\\d+")) {
-				JOptionPane.showMessageDialog(this,"Sai định dạng dữ liệu của đơn giá vui lòng nhập đúng đơn giá với dấu '.' ","Lỗi",JOptionPane.ERROR_MESSAGE);
+			if(!txtUnitPrice.getText().matches("\\d*\\d+")) {
+				JOptionPane.showMessageDialog(this,"Sai định dạng dữ liệu của đơn giá vui lòng nhập đúng đơn giá ","Lỗi",JOptionPane.ERROR_MESSAGE);
 			} else
 			{
+				String id = this.txtBookID.getText();
+				String bkName = this.txtBookName.getText();
+				String autName = this.txtAuthor.getText();
+				Integer year = Integer.valueOf(this.txtYearOfPublication.getText());
+				String prName = this.txtProducer.getText();
+				Integer page = Integer.valueOf(this.txtPages.getText());
+				Double uniPrice = Double.valueOf(this.txtUnitPrice.getText());
+				String isbn = this.txtBookISBN.getText();
 				try {
-					String id = this.txtBookID.getText();
-					String bkName = this.txtBookName.getText();
-					String autName = this.txtAuthor.getText();
-					Integer year = Integer.valueOf(this.txtYearOfPublication.getText());
-					String prName = this.txtProducer.getText();
-					Integer page = Integer.valueOf(this.txtPages.getText());
-					Double uniPrice = Double.valueOf(this.txtUnitPrice.getText());
-					String isbn = this.txtBookISBN.getText();
 					
 					Book newBook = new Book();
 					newBook.setBookID(id);
@@ -369,6 +369,17 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		} else {
 			int confirm = JOptionPane.showConfirmDialog(this, "Bạn có xác nhận thay đổi thông tin của cuốn sách này?","Xác nhận",JOptionPane.YES_NO_OPTION);
 			if(confirm == JOptionPane.YES_OPTION) {
+				Book updatedBk = new Book(
+				        txtBookID.getText(),
+				        txtBookName.getText(),
+				        txtAuthor.getText(),
+				        Integer.parseInt(txtYearOfPublication.getText()),
+				        txtProducer.getText(),
+				        Integer.parseInt(txtPages.getText()),
+				        Double.parseDouble(txtUnitPrice.getText()),
+				        txtBookISBN.getText()
+				    );
+				list.updateBook(updatedBk);
 				mdlTable.setValueAt(txtBookID.getText(), modelRow, 0);
 				mdlTable.setValueAt(txtBookName.getText(), modelRow, 1);
 				mdlTable.setValueAt(txtAuthor.getText(), modelRow, 2);
@@ -378,11 +389,11 @@ public class view extends JFrame implements ActionListener,MouseListener {
 				mdlTable.setValueAt(txtUnitPrice.getText(), modelRow, 6);
 				mdlTable.setValueAt(txtBookISBN.getText(), modelRow, 7);
 				btnUpdate.setText("Sửa");
+				cbbFind.removeItemAt(modelRow);
+				cbbFind.insertItemAt(txtBookID.getText(), modelRow);
 			}
 			isCheck = true;
 		}
-		cbbFind.removeItemAt(modelRow);
-		cbbFind.insertItemAt(txtBookID.getText(), modelRow);
 	}
 	
 //==============================================================================================
@@ -402,8 +413,13 @@ public class view extends JFrame implements ActionListener,MouseListener {
 	
 //==============================================================================================
 	public static void main(String[] args) {
-	
-		new view();
+		
+		try {
+			new view();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 	
 //==============================================================================================
@@ -437,6 +453,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		} else 
 		if(o == btnSave) {
 			saveData(list.getList());
+			JOptionPane.showMessageDialog(this, "Lưu thành công!","Thông báo",JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
 //==============================================================================================	

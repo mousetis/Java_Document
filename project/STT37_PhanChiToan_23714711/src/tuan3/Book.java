@@ -129,6 +129,7 @@ public class Book{
 		this.unitPrice = unitPrice;
 		this.ISBN = iSBN;
 	}
+	
 	@Override
 	public int hashCode() {
 		return Objects.hash(ISBN, bookID);
@@ -146,10 +147,9 @@ public class Book{
 	}
 	@Override
 	public String toString() {
-		return "Book [bookID=" + bookID + ", bookName=" + bookName + ", author=" + author + ", yearOfPublication="
-				+ yearOfPublication + ", producer=" + producer + ", pages=" + pages + ", unitPrice=" + unitPrice
-				+ ", ISBN=" + ISBN + "]";
+		return bookID+";"+bookName+";"+author+";"+yearOfPublication+";"+producer+";"+pages+";"+unitPrice+";"+ISBN;
 	}
+	
 	
 	
 }

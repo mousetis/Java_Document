@@ -17,24 +17,16 @@ public class ArrayBook {
 		return listBook;
 	}
 	
-	public void setList(ArrayList<Book> list) {
-		this.listBook = list;
-	}
-	
 	public void addBook(Book newBook) throws Exception{
 		for(Book bk : listBook) {
-			if(bk.getISBN().equals(newBook.getISBN()))
+			if(bk.getISBN().equalsIgnoreCase(newBook.getISBN())) {
 				throw new Exception("Trùng mã ISBN");
-				return;
-		}
-		
-		for(Book bk : listBook) {
+			}
 			if(bk.getBookID().equalsIgnoreCase(newBook.getBookID())) {
-				listBook.add(newBook);
-			} else {
-				throw new Exception("Mã sách bị trùng!");
+				throw new Exception("Trùng mã sách");
 			}
 		}
+		listBook.add(newBook);		
 	}
 	
 	public void removeBook(Book bk) {
