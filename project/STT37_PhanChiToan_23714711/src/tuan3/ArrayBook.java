@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.sql.Array;
 import java.util.ArrayList;
 
-public class ArrayBook {
+public class ArrayBook implements Serializable {
 	ArrayList<Book> listBook = new ArrayList<Book>();
 
 	public ArrayBook() {

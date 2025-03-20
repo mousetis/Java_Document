@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 import javax.naming.AuthenticationException;
 
-public class Book{
+public class Book implements Serializable{
 	private String bookID;
 	private String bookName;
 	private String author;

@@ -2,19 +2,24 @@ package tuan3;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -38,7 +43,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-public class view extends JFrame implements ActionListener,MouseListener {
+public class view extends JFrame implements ActionListener,MouseListener,WindowListener {
 	public ArrayBook list = new ArrayBook();
 	private JTextField txtBookID;
 	private JTextField txtBookName;
@@ -58,7 +63,9 @@ public class view extends JFrame implements ActionListener,MouseListener {
 	private JTable tblTable;
 	private TableRowSorter<TableModel> tbrsorter;
 	private Boolean isCheck = true;
-	private String filename = "bookData.txt";
+	private String filename = "data\\bookData";
+	fileDocGhi fi;
+	private boolean isDataSaved = true;
 	//int rowSelected;
 	private static final long serialVersionUID = 1L;
 	
@@ -206,7 +213,6 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		this.setSize(1000, 700);
 		this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		this.setLocationRelativeTo(null);
-		this.loadData();
 		this.setVisible(true);
 		
 		btnAdd.addActionListener(this);
@@ -225,29 +231,23 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		addEnterKeyListener(txtProducer, txtPages);
 		addEnterKeyListener(txtPages, txtUnitPrice);
 		addEnterKeyListener(txtUnitPrice, txtBookISBN);
+		addWindowListener(this);
+		
+		fi = new fileDocGhi();
+		try {
+			list = (ArrayBook)fi.readFromFile(filename);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this,"Không thể đọc file","Lỗi",JOptionPane.ERROR_MESSAGE);
+		}
+		printTable();
 	}
 //======================================Function=========================================================	
-	public void loadData() {
-		BufferedReader br = null;
-		try {
-			if(new File(filename ).exists()) {
-				br = new BufferedReader(new FileReader(filename));
-				br.readLine();
-				
-				while (br.ready()) {
-					String line = br.readLine();
-					if(line != null && !line.trim().equals("")) {
-						String[] str = line.split(";");
-						Book bk = new Book(str[0],str[1],str[2],Integer.parseInt(str[3]),str[4],Integer.parseInt(str[5]),Double.parseDouble(str[6]),str[7]);
-						list.addBook(bk);
-						mdlTable.addRow(str);
-						cbbFind.addItem(str[0]);
-					}
-				}
-			}
-			br.close();
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, "Lỗi đọc file!","Lỗi",JOptionPane.ERROR_MESSAGE);
+	public void printTable() {
+		mdlTable.setRowCount(0);
+		ArrayList<Book> listB = this.list.getList();
+		for(Book book : listB) {
+			this.mdlTable.addRow(new Object[] {book.getBookID(),book.getBookName(),book.getAuthor(),book.getYearOfPublication() + "", book.getProducer(), book.getPages() + "",book.getUnitPrice() + "", book.getISBN()});
+			cbbFind.addItem(book.getBookID());
 		}
 	}
 //=======================================================================================
@@ -280,7 +280,6 @@ public class view extends JFrame implements ActionListener,MouseListener {
 //==============================================================================================
 	
 	public void addBookTable() {
-		System.out.println(list.getList());
 		if(this.txtBookID.getText().equalsIgnoreCase("") || txtBookID.getText().trim().isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Mã sách không được để trống!","Lỗi",JOptionPane.ERROR_MESSAGE);
 			return;
@@ -317,7 +316,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 				    newBook.setISBN(isbn);
 				    
 				    this.list.addBook(newBook);
-					this.mdlTable.addRow(new Object[] {id, bkName, autName, year, prName,page, uniPrice, isbn});
+					this.mdlTable.addRow(new Object[] {id, bkName, autName, year + "", prName,page +"", uniPrice +"", isbn});
 					cbbFind.addItem(id);
 					this.tblTable.clearSelection();
 					deleteData();
@@ -326,7 +325,6 @@ public class view extends JFrame implements ActionListener,MouseListener {
 					JOptionPane.showMessageDialog(this, e.getMessage(),"Lỗi!",JOptionPane.ERROR_MESSAGE);	
 			} 
 			}
-			
 		}
 	}
 	
@@ -416,7 +414,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		this.txtBookISBN.setText(this.mdlTable.getValueAt(rowSelected, 7).toString());
 		
 	}
-	
+
 //==============================================================================================
 	public static void main(String[] args) {
 		
@@ -436,6 +434,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		
 		if(o == btnAdd) {
 			addBookTable();
+			isDataSaved = false;
 		} else
 		if(o == btnEmptyDelete) {
 			deleteData();
@@ -448,6 +447,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 				int check = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa dữ liệu cuốn sách này?","Xác nhận xóa",JOptionPane.YES_NO_OPTION);
 					if(check == JOptionPane.YES_OPTION)
 					deleteBook();
+				isDataSaved = false;
 			}
 			
 		} else
@@ -457,14 +457,21 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		if(o == btnUpdate){
 			try {
 				updateBook();
+				isDataSaved = false;
 			} catch (Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 		} else 
 		if(o == btnSave) {
-			saveData(list.getList());
-			JOptionPane.showMessageDialog(this, "Lưu thành công!","Thông báo",JOptionPane.INFORMATION_MESSAGE);
+			fi = new fileDocGhi();
+			try {
+				fi.writeToFile(list, filename);
+				JOptionPane.showMessageDialog(this, "Lưu thành công!","Thông báo",JOptionPane.INFORMATION_MESSAGE);
+				isDataSaved  = true;
+			} catch (Exception e2) {
+				JOptionPane.showMessageDialog(this,"Lưu không thành công!","Lỗi",JOptionPane.ERROR_MESSAGE);
+			}
 		}
 	}
 //==============================================================================================	
@@ -481,7 +488,7 @@ public class view extends JFrame implements ActionListener,MouseListener {
 //==============================================================================================	
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		this.getDataBook();
+			this.getDataBook();
 		
 	}
 	@Override
@@ -504,6 +511,57 @@ public class view extends JFrame implements ActionListener,MouseListener {
 		// TODO Auto-generated method stub
 		
 	}
+//==============================================================================================
 
 
-}
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowClosing(WindowEvent e) {
+		if(!isDataSaved) {
+			int confirm = JOptionPane.showConfirmDialog(this, "Dữ liệu chưa được lưu.Bạn có muốn lưu?","Cảnh báo",JOptionPane.YES_NO_OPTION);
+			if(confirm == JOptionPane.YES_OPTION) {
+				fi = new fileDocGhi();
+				try {
+					fi.writeToFile(list, filename);
+					JOptionPane.showMessageDialog(this, "Lưu thành công!","Thông báo",JOptionPane.INFORMATION_MESSAGE);
+					isDataSaved  = true;
+				} catch (Exception e2) {
+					JOptionPane.showMessageDialog(this,"Lưu không thành công!","Lỗi",JOptionPane.ERROR_MESSAGE);
+				}
+			} else {
+				System.exit(0);
+			}
+		} else {
+			System.exit(0);
+		}
+		
+	}
+	@Override
+	public void windowClosed(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowActivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}}
